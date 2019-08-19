@@ -13,6 +13,11 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 
+/**
+ * @author Aleks Itskovich
+ *
+ * This file is copyrighted under the MIT license.
+ */
 public class JOpenGraphTest {
 
     private JOpenGraph jOpenGraph;
@@ -37,7 +42,7 @@ public class JOpenGraphTest {
     @Test
     public void testGetAllProperties() {
         openGraphArticleData.getAllProperties();
-        assertEquals(20, openGraphArticleData.getAllProperties().size());
+        assertEquals(expectedArticleData.getNumProperties(), openGraphArticleData.getAllProperties().size());
     }
 
     @Test
@@ -90,7 +95,7 @@ public class JOpenGraphTest {
         OpenGraphData imageTestOpenGraphData;
         Map<String, List<String>> mockMetaTags = new HashMap<>();
         mockMetaTags.put("og:image:url", imageDataZoo.getImageUrl());
-        mockMetaTags.putIfAbsent("og:image:secure_url", imageDataZoo.getSecureImageUrl());
+        mockMetaTags.put("og:image:secure_url", imageDataZoo.getSecureImageUrl());
         mockMetaTags.put("twitter:image", imageDataZoo.getTwitterImage());
         mockMetaTags.put("twitter:image:src", imageDataZoo.getTwitterImageSrc());
 

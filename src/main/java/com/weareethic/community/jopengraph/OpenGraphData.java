@@ -15,6 +15,8 @@ import java.util.Set;
  * attribute.
  *
  * @author Aleks Itskovich
+ *
+ * This file is copyrighted under the MIT license.
  */
 public class OpenGraphData {
 

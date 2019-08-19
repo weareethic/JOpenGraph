@@ -22,6 +22,8 @@ import java.util.stream.Stream;
  * Permits various options to be set for establishing a connection, e.g. setting a user-agent or ignoring SSL certification.
  *
  * @author Aleks Itskovich
+ * <p>
+ * This file is copyrighted under the MIT license.
  */
 public class JOpenGraph {
 
@@ -29,7 +31,7 @@ public class JOpenGraph {
 
     private static final String DEFAULT_REFERRER = "http://www.google.com";
 
-    private static final int DEFAULT_TIMEOUT = 30 * 1000;  // 30 seconds
+    private static final int DEFAULT_TIMEOUT_MS = 30 * 1000;  // 30 seconds
 
     private static final boolean DEFAULT_IGNORE_HTTP_ERRORS_STATUS = false;
 
@@ -54,7 +56,7 @@ public class JOpenGraph {
     /**
      * The timeout value (in milliseconds) to be used in requests made by this object
      */
-    private int timeout;
+    private int timeoutMs;
 
     /**
      * Configures whether or not requests made by this object will ignore the media content type of the web page
@@ -90,7 +92,7 @@ public class JOpenGraph {
     public JOpenGraph() {
         this.userAgent = DEFAULT_USER_AGENT;
         this.referrer = DEFAULT_REFERRER;
-        this.timeout = DEFAULT_TIMEOUT;
+        this.timeoutMs = DEFAULT_TIMEOUT_MS;
         this.ignoreContentType = DEFAULT_IGNORE_CONTENT_TYPE_STATUS;
         this.ignoreHttpErrors = DEFAULT_IGNORE_HTTP_ERRORS_STATUS;
         this.followRedirects = DEFAULT_FOLLOW_REDIRECTS_STATUS;
@@ -106,7 +108,7 @@ public class JOpenGraph {
     public JOpenGraph(boolean ignoreContentType, boolean ignoreHttpErrors, boolean followRedirects, boolean validateTLSCertificates) {
         this.userAgent = DEFAULT_USER_AGENT;
         this.referrer = DEFAULT_REFERRER;
-        this.timeout = DEFAULT_TIMEOUT;
+        this.timeoutMs = DEFAULT_TIMEOUT_MS;
         this.ignoreContentType = ignoreContentType;
         this.ignoreHttpErrors = ignoreHttpErrors;
         this.followRedirects = followRedirects;
@@ -116,16 +118,16 @@ public class JOpenGraph {
     /**
      * @param userAgent               sets the http request user-agent header
      * @param referrer                sets the http request referrer header
-     * @param timeout                 sets the http request connection timeout (default is 30 seconds); a timeout of 0 corresponds to an infinite timeout
+     * @param timeoutMs               sets the http request connection timeout (default is 30 seconds); a timeout of 0 corresponds to an infinite timeout
      * @param ignoreContentType       if true sets the connection to ignore the media type of the resource (true by default)
      * @param ignoreHttpErrors        if true sets the connection to not throw exceptions when an HTTP error occurs (false by default)
      * @param followRedirects         if true sets the connection to follow server redirects (true by default)
      * @param validateTLSCertificates if false, sets the connection to ignore TLS/SSL certificates (true by default); if set to false this resolves SSLHandshake exception s
      */
-    public JOpenGraph(String userAgent, String referrer, int timeout, boolean ignoreContentType, boolean ignoreHttpErrors, boolean followRedirects, boolean validateTLSCertificates) {
+    public JOpenGraph(String userAgent, String referrer, int timeoutMs, boolean ignoreContentType, boolean ignoreHttpErrors, boolean followRedirects, boolean validateTLSCertificates) {
         this.userAgent = userAgent;
         this.referrer = referrer;
-        this.timeout = timeout;
+        this.timeoutMs = timeoutMs;
         this.ignoreContentType = ignoreContentType;
         this.ignoreHttpErrors = ignoreHttpErrors;
         this.followRedirects = followRedirects;
@@ -146,7 +148,7 @@ public class JOpenGraph {
         Document document = Jsoup.connect(URL)
                 .userAgent(userAgent)
                 .referrer(referrer)
-                .timeout(timeout)
+                .timeout(timeoutMs)
                 .ignoreContentType(ignoreContentType)
                 .ignoreHttpErrors(ignoreHttpErrors)
                 .followRedirects(followRedirects)
@@ -190,10 +192,7 @@ public class JOpenGraph {
                     return;
                 }
 
-                List<String> content = metaContents.putIfAbsent(key, new LinkedList<>(Arrays.asList(val)));
-                if (content != null) {
-                    content.add(val);
-                }
+                metaContents.computeIfAbsent(key, k -> new LinkedList<>(Arrays.asList())).add(val);
             }
         });
 
@@ -254,7 +253,7 @@ public class JOpenGraph {
      * @return the timeout length currently configured for the JOpenGraph object
      */
     public int getTimeout() {
-        return timeout;
+        return timeoutMs;
     }
 
     /**
@@ -300,10 +299,10 @@ public class JOpenGraph {
     }
 
     /**
-     * @param timeout sets the request timeout length to be used by this JOpenGraph object when attempting to establish a connection; a value of 0 corresponds to an infinite timeout
+     * @param timeoutMs sets the request timeout length to be used by this JOpenGraph object when attempting to establish a connection; a value of 0 corresponds to an infinite timeout
      */
-    public void setTimeout(int timeout) {
-        this.timeout = timeout;
+    public void setTimeout(int timeoutMs) {
+        this.timeoutMs = timeoutMs;
     }
 
     /**
