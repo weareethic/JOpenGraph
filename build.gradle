@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'jacoco'
 }
 
 group 'com.ethic.tech'
@@ -12,9 +13,24 @@ repositories {
 }
 
 dependencies {
+    // Test
     testCompile group: 'junit', name: 'junit', version: '4.12'
 
     // Utils
     compile group: 'org.jsoup', name: 'jsoup', version: '1.8.3'
+}
 
+jacoco {
+    toolVersion = "0.8.4"
+    reportsDir = file("$buildDir/customJacocoReportDir")
+}
+
+test.finalizedBy jacocoTestReport
+
+jacocoTestReport {
+    reports {
+        xml.enabled false
+        csv.enabled false
+        html.destination file("${buildDir}/jacoco/jacocoHtml")
+    }
 }
