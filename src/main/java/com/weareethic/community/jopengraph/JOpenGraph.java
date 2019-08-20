@@ -6,7 +6,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -192,7 +191,7 @@ public class JOpenGraph {
                     return;
                 }
 
-                metaContents.computeIfAbsent(key, k -> new LinkedList<>(Arrays.asList())).add(val);
+                metaContents.computeIfAbsent(key, k -> new LinkedList<>(Collections.emptyList())).add(val);
             }
         });
 
