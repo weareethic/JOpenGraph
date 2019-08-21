@@ -1,6 +1,8 @@
 plugins {
-    id 'java'
+    id 'java-library'
     id 'jacoco'
+    id 'maven-publish'
+    id 'signing'
 }
 
 group 'com.ethic.tech'
@@ -32,5 +34,137 @@ jacocoTestReport {
         xml.enabled false
         csv.enabled false
         html.destination file("${buildDir}/jacoco/jacocoHtml")
+    }
+}
+
+task sourceJar(type: Jar) {
+    classifier "sources"
+    from sourceSets.main.allJava
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier "javadoc"
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives jar
+    archives sourceJar
+    archives javadocJar
+}
+
+
+signing {
+    sign configurations.archives
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            customizePom(pom)
+            groupId 'com.weareethic.community'
+            artifactId 'jopengraph'
+            version '1.0.0'
+
+            from components.java
+
+            // create the sign pom artifact
+            pom.withXml {
+                def pomFile = file("${project.buildDir}/generated-pom.xml")
+                writeTo(pomFile)
+                def pomAscFile = signing.sign(pomFile).signatureFiles[0]
+                artifact(pomAscFile) {
+                    classifier = null
+                    extension = 'pom.asc'
+                }
+            }
+
+            artifact(sourceJar) {
+                classifier = 'sources'
+            }
+            artifact(javadocJar) {
+                classifier = 'javadoc'
+            }
+
+            // create the signed artifacts
+            project.tasks.signArchives.signatureFiles.each {
+                artifact(it) {
+                    def matcher = it.file =~ /-(sources|javadoc)\.jar\.asc$/
+                    if (matcher.find()) {
+                        classifier = matcher.group(1)
+                    } else {
+                        classifier = null
+                    }
+                    extension = 'jar.asc'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+            credentials {
+                username sonatypeUsername
+                password sonatypePassword
+            }
+        }
+    }
+}
+
+def customizePom(pom) {
+    pom.withXml {
+        def root = asNode()
+
+        // eliminate test-scoped dependencies (no need in maven central POMs)
+        root.dependencies.removeAll { dep ->
+            dep.scope == "test"
+        }
+
+        // add all items necessary for maven central publication
+        root.children().last() + {
+            resolveStrategy = Closure.DELEGATE_FIRST
+
+            description 'Retrieve Open Graph tags and other metadata from websites'
+            name 'JOpenGraph'
+            url 'https://github.com/weareethic/JOpenGraph'
+            organization {
+                name 'com.weareethic.community'
+                url 'https://github.com/weareethic/JOpenGraph'
+            }
+            issueManagement {
+                system 'GitHub'
+                url 'https://github.com/weareethic/JOpenGraph/issues'
+            }
+            licenses {
+                license {
+                    name 'MIT License'
+                    url 'https://github.com/weareethic/JOpenGraph/blob/master/LICENSE'
+                    distribution 'repo'
+                }
+            }
+            scm {
+                url 'https://github.com/weareethic/JOpenGraph'
+                connection 'scm:git:git://github.com/weareethic/JOpenGraph.git'
+                developerConnection 'scm:git:ssh://git@github.com:weareethic/JOpenGraph.git'
+            }
+            developers {
+                developer {
+                    name 'Itskovich'
+                }
+            }
+        }
+    }
+}
+
+model {
+    tasks.generatePomFileForMavenJavaPublication {
+        destination = file("$buildDir/generated-pom.xml")
+    }
+
+    tasks.publishMavenJavaPublicationToMavenLocal {
+        dependsOn project.tasks.signArchives
+    }
+    tasks.publishMavenJavaPublicationToMavenRepository {
+        dependsOn project.tasks.signArchives
     }
 }
